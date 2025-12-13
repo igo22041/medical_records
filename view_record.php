@@ -1,0 +1,85 @@
+<?php
+require_once 'config/session.php';
+require_once 'models/MedicalRecord.php';
+
+requireLogin();
+
+$id = intval($_GET['id'] ?? 0);
+
+if ($id <= 0) {
+    header("Location: records.php");
+    exit();
+}
+
+$recordModel = new MedicalRecord();
+$record = $recordModel->getById($id, $_SESSION['user_id'], isAdmin());
+
+if (!$record) {
+    header("Location: records.php");
+    exit();
+}
+
+$pageTitle = "Просмотр записи";
+require_once 'includes/header.php';
+?>
+
+<div class="container">
+    <div class="page-header">
+        <h1>Просмотр медицинской записи</h1>
+        <a href="records.php" class="btn btn-secondary">Назад к записям</a>
+    </div>
+    
+    <div class="record-detail">
+        <div class="record-detail-header">
+            <h2><?php echo htmlspecialchars($record['patient_name']); ?></h2>
+            <span class="record-age"><?php echo $record['patient_age']; ?> лет</span>
+        </div>
+        
+        <div class="record-detail-info">
+            <div class="info-item">
+                <strong>Врач:</strong>
+                <span><?php echo htmlspecialchars($record['doctor_name']); ?></span>
+            </div>
+            
+            <div class="info-item">
+                <strong>Дата записи:</strong>
+                <span><?php echo date('d.m.Y', strtotime($record['record_date'])); ?></span>
+            </div>
+            
+            <?php if (isAdmin() && isset($record['creator_name'])): ?>
+                <div class="info-item">
+                    <strong>Создал:</strong>
+                    <span><?php echo htmlspecialchars($record['creator_name']); ?></span>
+                </div>
+            <?php endif; ?>
+            
+            <div class="info-item">
+                <strong>Дата создания:</strong>
+                <span><?php echo date('d.m.Y H:i', strtotime($record['created_at'])); ?></span>
+            </div>
+        </div>
+        
+        <div class="record-detail-content">
+            <div class="content-section">
+                <h3>Диагноз</h3>
+                <p><?php echo nl2br(htmlspecialchars($record['diagnosis'])); ?></p>
+            </div>
+            
+            <div class="content-section">
+                <h3>Лечение</h3>
+                <p><?php echo nl2br(htmlspecialchars($record['treatment'])); ?></p>
+            </div>
+        </div>
+        
+        <div class="record-detail-actions">
+            <a href="edit_record.php?id=<?php echo $record['id']; ?>" class="btn btn-primary">Редактировать</a>
+            <a href="delete_record.php?id=<?php echo $record['id']; ?>" 
+               class="btn btn-danger" 
+               onclick="return confirm('Вы уверены, что хотите удалить эту запись?');">Удалить</a>
+            <a href="records.php" class="btn btn-secondary">Назад</a>
+        </div>
+    </div>
+</div>
+
+<?php require_once 'includes/footer.php'; ?>
+

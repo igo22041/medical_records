@@ -244,12 +244,82 @@ class MedicalRecord {
         $query = "SELECT r.*, u.username as creator_name 
                   FROM " . $this->table . " r 
                   LEFT JOIN users u ON r.created_by = u.id 
-                  ORDER BY r.created_at DESC 
+                  ORDER BY r.record_date DESC, r.created_at DESC 
                   LIMIT :limit";
         $stmt = $this->conn->prepare($query);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Метод для пагинации
+    public function getAllPaginated($user_id = null, $is_admin = false, $status_filter = null, $page = 1, $per_page = 10) {
+        $offset = ($page - 1) * $per_page;
+        $where_clauses = [];
+        $params = [];
+        
+        if (!$is_admin) {
+            $where_clauses[] = "created_by = :user_id";
+            $params[':user_id'] = $user_id;
+        }
+        
+        if ($status_filter) {
+            $where_clauses[] = "status = :status";
+            $params[':status'] = $status_filter;
+        }
+        
+        $where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
+        
+        if ($is_admin) {
+            $query = "SELECT r.*, u.username as creator_name 
+                      FROM " . $this->table . " r 
+                      LEFT JOIN users u ON r.created_by = u.id 
+                      " . $where_sql . "
+                      ORDER BY r.record_date DESC, r.created_at DESC 
+                      LIMIT :limit OFFSET :offset";
+        } else {
+            $query = "SELECT * FROM " . $this->table . " " . $where_sql . " 
+                      ORDER BY record_date DESC, created_at DESC 
+                      LIMIT :limit OFFSET :offset";
+        }
+        
+        $stmt = $this->conn->prepare($query);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Получить общее количество записей для пагинации
+    public function getTotalCountForPagination($user_id = null, $is_admin = false, $status_filter = null) {
+        $where_clauses = [];
+        $params = [];
+        
+        if (!$is_admin) {
+            $where_clauses[] = "created_by = :user_id";
+            $params[':user_id'] = $user_id;
+        }
+        
+        if ($status_filter) {
+            $where_clauses[] = "status = :status";
+            $params[':status'] = $status_filter;
+        }
+        
+        $where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
+        
+        $query = "SELECT COUNT(*) as total FROM " . $this->table . " " . $where_sql;
+        $stmt = $this->conn->prepare($query);
+        
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'];
     }
 }
 ?>

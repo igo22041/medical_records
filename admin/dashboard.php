@@ -20,16 +20,28 @@ $statsByDate = $recordModel->getStatsByDate(30);
 $statsByAge = $recordModel->getStatsByAgeGroup();
 $recentRecords = $recordModel->getRecentRecords(5);
 
+// Пагинация
+$page = max(1, intval($_GET['page'] ?? 1));
+$per_page = 15;
+$total_records_admin = 0;
+$total_pages_admin = 1;
+
 // Получение записей с учетом фильтров
 if (!empty($search_term)) {
-    $allRecords = $recordModel->search($search_term, null, true);
+    $allRecordsSearch = $recordModel->search($search_term, null, true);
     if (!empty($status_filter)) {
-        $allRecords = array_filter($allRecords, function($record) use ($status_filter) {
+        $allRecordsSearch = array_filter($allRecordsSearch, function($record) use ($status_filter) {
             return ($record['status'] ?? 'active') === $status_filter;
         });
     }
+    $total_records_admin = count($allRecordsSearch);
+    $total_pages_admin = ceil($total_records_admin / $per_page);
+    $offset = ($page - 1) * $per_page;
+    $allRecords = array_slice($allRecordsSearch, $offset, $per_page);
 } else {
-    $allRecords = $recordModel->getAll(null, true, $status_filter);
+    $total_records_admin = $recordModel->getTotalCountForPagination(null, true, $status_filter);
+    $total_pages_admin = ceil($total_records_admin / $per_page);
+    $allRecords = $recordModel->getAllPaginated(null, true, $status_filter, $page, $per_page);
 }
 
 $pageTitle = "Панель администратора";
@@ -214,8 +226,49 @@ require_once '../includes/header.php';
             </div>
             
             <div class="records-count">
-                <p>Найдено записей: <?php echo count($allRecords); ?></p>
+                <p>Найдено записей: <?php echo $total_records_admin; ?></p>
             </div>
+            
+            <?php if ($total_pages_admin > 1): ?>
+                <div class="pagination">
+                    <?php if ($page > 1): ?>
+                        <a href="?page=<?php echo $page - 1; ?><?php echo !empty($search_term) ? '&search=' . urlencode($search_term) : ''; ?><?php echo !empty($status_filter) ? '&status=' . urlencode($status_filter) : ''; ?>" 
+                           class="pagination-btn">← Назад</a>
+                    <?php endif; ?>
+                    
+                    <?php
+                    $start_page = max(1, $page - 2);
+                    $end_page = min($total_pages_admin, $page + 2);
+                    
+                    if ($start_page > 1): ?>
+                        <a href="?page=1<?php echo !empty($search_term) ? '&search=' . urlencode($search_term) : ''; ?><?php echo !empty($status_filter) ? '&status=' . urlencode($status_filter) : ''; ?>" 
+                           class="pagination-btn">1</a>
+                        <?php if ($start_page > 2): ?>
+                            <span class="pagination-dots">...</span>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    
+                    <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
+                        <a href="?page=<?php echo $i; ?><?php echo !empty($search_term) ? '&search=' . urlencode($search_term) : ''; ?><?php echo !empty($status_filter) ? '&status=' . urlencode($status_filter) : ''; ?>" 
+                           class="pagination-btn <?php echo $i === $page ? 'active' : ''; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    <?php endfor; ?>
+                    
+                    <?php if ($end_page < $total_pages_admin): ?>
+                        <?php if ($end_page < $total_pages_admin - 1): ?>
+                            <span class="pagination-dots">...</span>
+                        <?php endif; ?>
+                        <a href="?page=<?php echo $total_pages_admin; ?><?php echo !empty($search_term) ? '&search=' . urlencode($search_term) : ''; ?><?php echo !empty($status_filter) ? '&status=' . urlencode($status_filter) : ''; ?>" 
+                           class="pagination-btn"><?php echo $total_pages_admin; ?></a>
+                    <?php endif; ?>
+                    
+                    <?php if ($page < $total_pages_admin): ?>
+                        <a href="?page=<?php echo $page + 1; ?><?php echo !empty($search_term) ? '&search=' . urlencode($search_term) : ''; ?><?php echo !empty($status_filter) ? '&status=' . urlencode($status_filter) : ''; ?>" 
+                           class="pagination-btn">Вперед →</a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 </div>

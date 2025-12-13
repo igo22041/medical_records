@@ -1,6 +1,7 @@
 <?php
 require_once 'config/session.php';
 require_once 'models/MedicalRecord.php';
+require_once 'config/statuses.php';
 
 requireLogin();
 
@@ -14,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $treatment = trim($_POST['treatment'] ?? '');
     $doctor_name = trim($_POST['doctor_name'] ?? '');
     $record_date = $_POST['record_date'] ?? date('Y-m-d');
+    $status = $_POST['status'] ?? 'active';
     
     if (empty($patient_name) || empty($diagnosis) || empty($treatment) || empty($doctor_name)) {
         $error = 'Пожалуйста, заполните все обязательные поля';
@@ -21,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = 'Некорректный возраст пациента';
     } else {
         $recordModel = new MedicalRecord();
-        if ($recordModel->create($patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $_SESSION['user_id'])) {
+        if ($recordModel->create($patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $status, $_SESSION['user_id'])) {
             $success = 'Медицинская запись успешно добавлена!';
             // Очистка формы
             $_POST = array();
@@ -72,10 +74,27 @@ require_once 'includes/header.php';
                        value="<?php echo htmlspecialchars($_POST['doctor_name'] ?? ''); ?>" required>
             </div>
             
-            <div class="form-group">
-                <label for="record_date">Дата записи *</label>
-                <input type="date" id="record_date" name="record_date" 
-                       value="<?php echo htmlspecialchars($_POST['record_date'] ?? date('Y-m-d')); ?>" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="record_date">Дата записи *</label>
+                    <input type="date" id="record_date" name="record_date" 
+                           value="<?php echo htmlspecialchars($_POST['record_date'] ?? date('Y-m-d')); ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Статус *</label>
+                    <select id="status" name="status" required>
+                        <?php 
+                        $statuses = getStatuses();
+                        $selected_status = $_POST['status'] ?? 'active';
+                        foreach ($statuses as $key => $status_info): 
+                        ?>
+                            <option value="<?php echo $key; ?>" <?php echo $selected_status === $key ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($status_info['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
             
             <div class="form-group">

@@ -21,12 +21,14 @@ CREATE TABLE IF NOT EXISTS medical_records (
     treatment TEXT NOT NULL,
     doctor_name VARCHAR(100) NOT NULL,
     record_date DATE NOT NULL,
+    status ENUM('active', 'in_treatment', 'recovered', 'chronic', 'cancelled') DEFAULT 'active',
     created_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_patient_name (patient_name),
     INDEX idx_record_date (record_date),
+    INDEX idx_status (status),
     INDEX idx_created_by (created_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

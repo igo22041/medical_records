@@ -1,11 +1,13 @@
 <?php
 require_once 'config/session.php';
 require_once 'models/MedicalRecord.php';
+require_once 'config/statuses.php';
 
 requireLogin();
 
 $recordModel = new MedicalRecord();
 $search_term = $_GET['search'] ?? '';
+$status_filter = $_GET['status'] ?? '';
 $records = array();
 $success_message = '';
 
@@ -15,8 +17,14 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == '1') {
 
 if (!empty($search_term)) {
     $records = $recordModel->search($search_term, $_SESSION['user_id'], isAdmin());
+    // Фильтрация по статусу после поиска
+    if (!empty($status_filter)) {
+        $records = array_filter($records, function($record) use ($status_filter) {
+            return ($record['status'] ?? 'active') === $status_filter;
+        });
+    }
 } else {
-    $records = $recordModel->getAll($_SESSION['user_id'], isAdmin());
+    $records = $recordModel->getAll($_SESSION['user_id'], isAdmin(), $status_filter);
 }
 
 $pageTitle = "Медицинские записи";
@@ -37,8 +45,19 @@ require_once 'includes/header.php';
         <form method="GET" action="" class="search-form">
             <input type="text" name="search" placeholder="Поиск по имени пациента, диагнозу, врачу или лечению..." 
                    value="<?php echo htmlspecialchars($search_term); ?>" class="search-input">
+            <select name="status" class="status-filter">
+                <option value="">Все статусы</option>
+                <?php 
+                $statuses = getStatuses();
+                foreach ($statuses as $key => $status_info): 
+                ?>
+                    <option value="<?php echo $key; ?>" <?php echo $status_filter === $key ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($status_info['name']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
             <button type="submit" class="btn btn-primary">Поиск</button>
-            <?php if (!empty($search_term)): ?>
+            <?php if (!empty($search_term) || !empty($status_filter)): ?>
                 <a href="records.php" class="btn btn-secondary">Очистить</a>
             <?php endif; ?>
         </form>
@@ -61,6 +80,12 @@ require_once 'includes/header.php';
                     <div class="record-info">
                         <p><strong>Врач:</strong> <?php echo htmlspecialchars($record['doctor_name']); ?></p>
                         <p><strong>Дата:</strong> <?php echo date('d.m.Y', strtotime($record['record_date'])); ?></p>
+                        <p><strong>Статус:</strong> 
+                            <span class="status-badge" style="background-color: <?php echo getStatusColor($record['status'] ?? 'active'); ?>">
+                                <?php echo getStatusIcon($record['status'] ?? 'active'); ?> 
+                                <?php echo getStatusName($record['status'] ?? 'active'); ?>
+                            </span>
+                        </p>
                         <?php if (isAdmin() && isset($record['creator_name'])): ?>
                             <p><strong>Создал:</strong> <?php echo htmlspecialchars($record['creator_name']); ?></p>
                         <?php endif; ?>

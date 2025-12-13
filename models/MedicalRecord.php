@@ -10,10 +10,10 @@ class MedicalRecord {
         $this->conn = $database->getConnection();
     }
 
-    public function create($patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $created_by) {
+    public function create($patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $status, $created_by) {
         $query = "INSERT INTO " . $this->table . " 
-                  (patient_name, patient_age, diagnosis, treatment, doctor_name, record_date, created_by) 
-                  VALUES (:patient_name, :patient_age, :diagnosis, :treatment, :doctor_name, :record_date, :created_by)";
+                  (patient_name, patient_age, diagnosis, treatment, doctor_name, record_date, status, created_by) 
+                  VALUES (:patient_name, :patient_age, :diagnosis, :treatment, :doctor_name, :record_date, :status, :created_by)";
         
         $stmt = $this->conn->prepare($query);
         
@@ -23,22 +23,41 @@ class MedicalRecord {
         $stmt->bindParam(":treatment", $treatment);
         $stmt->bindParam(":doctor_name", $doctor_name);
         $stmt->bindParam(":record_date", $record_date);
+        $stmt->bindParam(":status", $status);
         $stmt->bindParam(":created_by", $created_by);
         
         return $stmt->execute();
     }
 
-    public function getAll($user_id = null, $is_admin = false) {
+    public function getAll($user_id = null, $is_admin = false, $status_filter = null) {
+        $where_clauses = [];
+        $params = [];
+        
+        if (!$is_admin) {
+            $where_clauses[] = "created_by = :user_id";
+            $params[':user_id'] = $user_id;
+        }
+        
+        if ($status_filter) {
+            $where_clauses[] = "status = :status";
+            $params[':status'] = $status_filter;
+        }
+        
+        $where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
+        
         if ($is_admin) {
             $query = "SELECT r.*, u.username as creator_name 
                       FROM " . $this->table . " r 
                       LEFT JOIN users u ON r.created_by = u.id 
+                      " . $where_sql . "
                       ORDER BY r.record_date DESC, r.created_at DESC";
-            $stmt = $this->conn->prepare($query);
         } else {
-            $query = "SELECT * FROM " . $this->table . " WHERE created_by = :user_id ORDER BY record_date DESC, created_at DESC";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(":user_id", $user_id);
+            $query = "SELECT * FROM " . $this->table . " " . $where_sql . " ORDER BY record_date DESC, created_at DESC";
+        }
+        
+        $stmt = $this->conn->prepare($query);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
         }
         
         $stmt->execute();
@@ -96,7 +115,7 @@ class MedicalRecord {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function update($id, $patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $user_id = null, $is_admin = false) {
+    public function update($id, $patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $status, $user_id = null, $is_admin = false) {
         if (!$is_admin) {
             $query = "UPDATE " . $this->table . " 
                       SET patient_name = :patient_name, 
@@ -104,7 +123,8 @@ class MedicalRecord {
                           diagnosis = :diagnosis, 
                           treatment = :treatment, 
                           doctor_name = :doctor_name, 
-                          record_date = :record_date 
+                          record_date = :record_date,
+                          status = :status
                       WHERE id = :id AND created_by = :user_id";
         } else {
             $query = "UPDATE " . $this->table . " 
@@ -113,7 +133,8 @@ class MedicalRecord {
                           diagnosis = :diagnosis, 
                           treatment = :treatment, 
                           doctor_name = :doctor_name, 
-                          record_date = :record_date 
+                          record_date = :record_date,
+                          status = :status
                       WHERE id = :id";
         }
         
@@ -126,6 +147,7 @@ class MedicalRecord {
         $stmt->bindParam(":treatment", $treatment);
         $stmt->bindParam(":doctor_name", $doctor_name);
         $stmt->bindParam(":record_date", $record_date);
+        $stmt->bindParam(":status", $status);
         
         if (!$is_admin) {
             $stmt->bindParam(":user_id", $user_id);
@@ -164,6 +186,70 @@ class MedicalRecord {
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['total'];
+    }
+
+    // Статистика для администратора
+    public function getStatsByStatus() {
+        $query = "SELECT status, COUNT(*) as count 
+                  FROM " . $this->table . " 
+                  GROUP BY status 
+                  ORDER BY count DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getStatsByUser() {
+        $query = "SELECT u.username, u.id, COUNT(r.id) as record_count 
+                  FROM users u 
+                  LEFT JOIN " . $this->table . " r ON u.id = r.created_by 
+                  GROUP BY u.id, u.username 
+                  ORDER BY record_count DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getStatsByDate($days = 30) {
+        $query = "SELECT DATE(record_date) as date, COUNT(*) as count 
+                  FROM " . $this->table . " 
+                  WHERE record_date >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+                  GROUP BY DATE(record_date) 
+                  ORDER BY date ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':days', $days, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getStatsByAgeGroup() {
+        $query = "SELECT 
+                    CASE 
+                        WHEN patient_age < 18 THEN 'Дети (0-17)'
+                        WHEN patient_age BETWEEN 18 AND 30 THEN 'Молодежь (18-30)'
+                        WHEN patient_age BETWEEN 31 AND 50 THEN 'Взрослые (31-50)'
+                        WHEN patient_age BETWEEN 51 AND 70 THEN 'Средний возраст (51-70)'
+                        ELSE 'Пожилые (70+)'
+                    END as age_group,
+                    COUNT(*) as count
+                  FROM " . $this->table . " 
+                  GROUP BY age_group 
+                  ORDER BY count DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRecentRecords($limit = 10) {
+        $query = "SELECT r.*, u.username as creator_name 
+                  FROM " . $this->table . " r 
+                  LEFT JOIN users u ON r.created_by = u.id 
+                  ORDER BY r.created_at DESC 
+                  LIMIT :limit";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>

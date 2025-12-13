@@ -1,6 +1,7 @@
 <?php
 require_once 'config/session.php';
 require_once 'models/MedicalRecord.php';
+require_once 'config/statuses.php';
 
 requireLogin();
 
@@ -44,6 +45,14 @@ require_once 'includes/header.php';
             <div class="info-item">
                 <strong>Дата записи:</strong>
                 <span><?php echo date('d.m.Y', strtotime($record['record_date'])); ?></span>
+            </div>
+            
+            <div class="info-item">
+                <strong>Статус:</strong>
+                <span class="status-badge" style="background-color: <?php echo getStatusColor($record['status'] ?? 'active'); ?>">
+                    <?php echo getStatusIcon($record['status'] ?? 'active'); ?> 
+                    <?php echo getStatusName($record['status'] ?? 'active'); ?>
+                </span>
             </div>
             
             <?php if (isAdmin() && isset($record['creator_name'])): ?>

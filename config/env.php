@@ -26,11 +26,11 @@ function env($key, $default = null) {
 
 
 
-define('DB_HOST', env('MYSQL_HOST', env('DB_HOST', 'switchback.proxy.rlwy.net')));
+define('DB_HOST', env('MYSQL_HOST', env('DB_HOST', 'mysql.railway.internal')));
 define('DB_NAME', env('MYSQL_DATABASE', env('DB_NAME', 'railway')));
 define('DB_USER', env('MYSQL_USER', env('DB_USER', 'root')));
 define('DB_PASS', env('MYSQL_PASSWORD', env('DB_PASSWORD', 'sBxNvZMqCrmjjXmbuatiSsPBPwDEDuzW')));
-define('DB_PORT', env('MYSQL_PORT', env('DB_PORT', '21778')));
+define('DB_PORT', env('MYSQL_PORT', env('DB_PORT', '3306')));
 
 // Другие переменные окружения
 define('APP_ENV', env('APP_ENV', 'production'));

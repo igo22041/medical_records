@@ -9,7 +9,7 @@ $recordModel = new MedicalRecord();
 $search_term = $_GET['search'] ?? '';
 $status_filter = $_GET['status'] ?? '';
 $page = max(1, intval($_GET['page'] ?? 1));
-$per_page = 10;
+$per_page = 9;
 $records = array();
 $total_records = 0;
 $total_pages = 1;
@@ -52,10 +52,10 @@ require_once 'includes/header.php';
     <?php endif; ?>
     
     <div class="search-section">
-        <form method="GET" action="" class="search-form">
-            <input type="text" name="search" placeholder="Поиск по имени пациента, диагнозу, врачу или лечению..." 
+        <form method="GET" action="" class="search-form" id="searchForm">
+            <input type="text" name="search" id="searchInput" placeholder="Поиск по имени пациента, диагнозу, врачу или лечению..." 
                    value="<?php echo htmlspecialchars($search_term); ?>" class="search-input">
-            <select name="status" class="status-filter">
+            <select name="status" id="statusFilter" class="status-filter">
                 <option value="">Все статусы</option>
                 <?php 
                 $statuses = getStatuses();
@@ -66,12 +66,35 @@ require_once 'includes/header.php';
                     </option>
                 <?php endforeach; ?>
             </select>
-            <button type="submit" class="btn btn-primary">Поиск</button>
             <?php if (!empty($search_term) || !empty($status_filter)): ?>
                 <a href="records.php" class="btn btn-secondary">Очистить</a>
             <?php endif; ?>
         </form>
     </div>
+    
+    <script>
+        (function() {
+            let searchTimeout;
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const searchForm = document.getElementById('searchForm');
+            
+            function submitSearch() {
+                searchForm.submit();
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(submitSearch, 500);
+                });
+            }
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', submitSearch);
+            }
+        })();
+    </script>
     
     <?php if (empty($records)): ?>
         <div class="empty-state">

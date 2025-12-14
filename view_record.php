@@ -78,9 +78,30 @@ require_once 'includes/header.php';
                 <h3>Лечение</h3>
                 <p><?php echo nl2br(htmlspecialchars($record['treatment'])); ?></p>
             </div>
+            
+            <?php if (!empty($record['attachment_file'])): ?>
+                <div class="content-section">
+                    <h3>Прикрепленный файл</h3>
+                    <div class="attachment-file">
+                        <a href="download_file.php?id=<?php echo $record['id']; ?>" class="file-download-link" target="_blank">
+                            <span class="file-name">
+                                <?php 
+                                // Извлекаем оригинальное имя файла
+                                $file_info = explode('|', $record['attachment_file']);
+                                $display_name = count($file_info) > 1 ? $file_info[0] : $record['attachment_file'];
+                                echo htmlspecialchars($display_name);
+                                ?>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
         
         <div class="record-detail-actions">
+            <?php if (isAdmin()): ?>
+                <a href="export_pdf.php?patient=<?php echo urlencode($record['patient_name']); ?>" class="btn btn-primary">Экспорт в PDF</a>
+            <?php endif; ?>
             <a href="edit_record.php?id=<?php echo $record['id']; ?>" class="btn btn-primary">Редактировать</a>
             <a href="delete_record.php?id=<?php echo $record['id']; ?>" 
                class="btn btn-danger" 

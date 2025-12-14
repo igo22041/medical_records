@@ -10,10 +10,10 @@ class MedicalRecord {
         $this->conn = $database->getConnection();
     }
 
-    public function create($patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $status, $created_by) {
+    public function create($patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $status, $created_by, $attachment_file = null) {
         $query = "INSERT INTO " . $this->table . " 
-                  (patient_name, patient_age, diagnosis, treatment, doctor_name, record_date, status, created_by) 
-                  VALUES (:patient_name, :patient_age, :diagnosis, :treatment, :doctor_name, :record_date, :status, :created_by)";
+                  (patient_name, patient_age, diagnosis, treatment, doctor_name, record_date, status, created_by, attachment_file) 
+                  VALUES (:patient_name, :patient_age, :diagnosis, :treatment, :doctor_name, :record_date, :status, :created_by, :attachment_file)";
         
         $stmt = $this->conn->prepare($query);
         
@@ -25,6 +25,7 @@ class MedicalRecord {
         $stmt->bindParam(":record_date", $record_date);
         $stmt->bindParam(":status", $status);
         $stmt->bindParam(":created_by", $created_by);
+        $stmt->bindParam(":attachment_file", $attachment_file);
         
         return $stmt->execute();
     }
@@ -115,7 +116,7 @@ class MedicalRecord {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function update($id, $patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $status, $user_id = null, $is_admin = false) {
+    public function update($id, $patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $status, $user_id = null, $is_admin = false, $attachment_file = null, $clear_file = false) {
         if (!$is_admin) {
             $query = "UPDATE " . $this->table . " 
                       SET patient_name = :patient_name, 
@@ -124,8 +125,7 @@ class MedicalRecord {
                           treatment = :treatment, 
                           doctor_name = :doctor_name, 
                           record_date = :record_date,
-                          status = :status
-                      WHERE id = :id AND created_by = :user_id";
+                          status = :status";
         } else {
             $query = "UPDATE " . $this->table . " 
                       SET patient_name = :patient_name, 
@@ -134,9 +134,17 @@ class MedicalRecord {
                           treatment = :treatment, 
                           doctor_name = :doctor_name, 
                           record_date = :record_date,
-                          status = :status
-                      WHERE id = :id";
+                          status = :status";
         }
+        
+        // Если нужно очистить файл или установить новое значение
+        if ($clear_file) {
+            $query .= ", attachment_file = NULL";
+        } elseif ($attachment_file !== null) {
+            $query .= ", attachment_file = :attachment_file";
+        }
+        
+        $query .= $is_admin ? " WHERE id = :id" : " WHERE id = :id AND created_by = :user_id";
         
         $stmt = $this->conn->prepare($query);
         
@@ -148,6 +156,10 @@ class MedicalRecord {
         $stmt->bindParam(":doctor_name", $doctor_name);
         $stmt->bindParam(":record_date", $record_date);
         $stmt->bindParam(":status", $status);
+        
+        if ($attachment_file !== null && !$clear_file) {
+            $stmt->bindParam(":attachment_file", $attachment_file);
+        }
         
         if (!$is_admin) {
             $stmt->bindParam(":user_id", $user_id);

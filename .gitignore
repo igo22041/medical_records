@@ -1,0 +1,17 @@
+# Загруженные файлы
+uploads/
+*.upload
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Временные файлы
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Конфигурация (если нужно скрыть)
+# config/database.php

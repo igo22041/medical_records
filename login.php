@@ -61,12 +61,7 @@ require_once 'includes/header.php';
             <p class="auth-link">
                 Нет аккаунта? <a href="register.php">Зарегистрироваться</a>
             </p>
-            
-            <div class="demo-credentials">
-                <p><strong>Тестовые учетные данные:</strong></p>
-                <p>Администратор: admin / admin123</p>
-                <p>Пользователь: user / user123</p>
-            </div>
+
         </div>
     </div>
 </div>

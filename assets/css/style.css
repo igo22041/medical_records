@@ -295,6 +295,60 @@ body {
     border-color: var(--primary-color);
 }
 
+.form-group small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+/* Стили для работы с файлами */
+.current-file-container {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--bg-light);
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.current-file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.file-icon {
+    font-size: 1.25rem;
+}
+
+.file-link {
+    flex: 1;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    word-break: break-word;
+    min-width: 0;
+}
+
+.file-link:hover {
+    text-decoration: underline;
+}
+
+.delete-file-btn {
+    white-space: nowrap;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+}
+
+.file-note {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-style: italic;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -537,6 +591,53 @@ body {
     color: var(--text-color);
     line-height: 1.8;
     white-space: pre-wrap;
+}
+
+/* Стили для отображения файла в просмотре */
+.attachment-file {
+    margin-top: 0.5rem;
+}
+
+.file-download-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    background: var(--bg-light);
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--text-color);
+    transition: all 0.2s;
+    max-width: 100%;
+}
+
+.file-download-link:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.file-icon-large {
+    font-size: 1.5rem;
+}
+
+.file-name {
+    flex: 1;
+    font-weight: 500;
+    word-break: break-word;
+    min-width: 0;
+}
+
+.file-download-icon {
+    font-size: 1.25rem;
+    opacity: 0.7;
+}
+
+.file-download-link:hover .file-download-icon {
+    opacity: 1;
 }
 
 .record-detail-actions {

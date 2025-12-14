@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS medical_records (
     patient_age INT NOT NULL,
     diagnosis TEXT NOT NULL,
     treatment TEXT NOT NULL,
+    attachment_file VARCHAR(255) NULL,
     doctor_name VARCHAR(100) NOT NULL,
     record_date DATE NOT NULL,
     status ENUM('active', 'in_treatment', 'recovered', 'chronic', 'cancelled') DEFAULT 'active',
@@ -29,7 +30,8 @@ CREATE TABLE IF NOT EXISTS medical_records (
     INDEX idx_patient_name (patient_name),
     INDEX idx_record_date (record_date),
     INDEX idx_status (status),
-    INDEX idx_created_by (created_by)
+    INDEX idx_created_by (created_by),
+    INDEX idx_attachment_file (attachment_file)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Создание администратора по умолчанию (пароль: admin123)

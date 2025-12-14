@@ -155,10 +155,10 @@ require_once '../includes/header.php';
         <h2>Управление медицинскими записями</h2>
         
         <div class="search-section">
-            <form method="GET" action="" class="search-form">
-                <input type="text" name="search" placeholder="Поиск по всем записям..." 
+            <form method="GET" action="" class="search-form" id="searchForm">
+                <input type="text" name="search" id="searchInput" placeholder="Поиск по всем записям..." 
                        value="<?php echo htmlspecialchars($search_term); ?>" class="search-input">
-                <select name="status" class="status-filter">
+                <select name="status" id="statusFilter" class="status-filter">
                     <option value="">Все статусы</option>
                     <?php 
                     $statuses = getStatuses();
@@ -169,12 +169,35 @@ require_once '../includes/header.php';
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <button type="submit" class="btn btn-primary">Поиск</button>
                 <?php if (!empty($search_term) || !empty($status_filter)): ?>
                     <a href="dashboard.php" class="btn btn-secondary">Очистить</a>
                 <?php endif; ?>
             </form>
         </div>
+        
+        <script>
+            (function() {
+                let searchTimeout;
+                const searchInput = document.getElementById('searchInput');
+                const statusFilter = document.getElementById('statusFilter');
+                const searchForm = document.getElementById('searchForm');
+                
+                function submitSearch() {
+                    searchForm.submit();
+                }
+                
+                if (searchInput) {
+                    searchInput.addEventListener('input', function() {
+                        clearTimeout(searchTimeout);
+                        searchTimeout = setTimeout(submitSearch, 500);
+                    });
+                }
+                
+                if (statusFilter) {
+                    statusFilter.addEventListener('change', submitSearch);
+                }
+            })();
+        </script>
         
         <?php if (empty($allRecords)): ?>
             <div class="empty-state">
@@ -213,6 +236,8 @@ require_once '../includes/header.php';
                                 <td class="action-buttons">
                                     <a href="../view_record.php?id=<?php echo $record['id']; ?>" 
                                        class="btn btn-sm btn-primary">Просмотр</a>
+                                    <a href="../export_pdf.php?patient=<?php echo urlencode($record['patient_name']); ?>" 
+                                       class="btn btn-sm btn-primary" target="_blank">PDF</a>
                                     <a href="../edit_record.php?id=<?php echo $record['id']; ?>" 
                                        class="btn btn-sm btn-secondary">Редактировать</a>
                                     <a href="../delete_record.php?id=<?php echo $record['id']; ?>" 

@@ -1,9 +1,9 @@
 <?php
 class Database {
-    private $host = "localhost";
+    private $host = "switchback.proxy.rlwy.net";
     private $db_name = "medical_records";
     private $username = "root";
-    private $password = "root";
+    private $password = "sBxNvZMqCrmjjXmbuatiSsPBPwDEDuzW";
     public $conn;
 
     public function getConnection() {

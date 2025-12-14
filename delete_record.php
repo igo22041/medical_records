@@ -20,6 +20,18 @@ if (!$record) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm'])) {
+    // Удаляем связанный файл если есть
+    if (!empty($record['attachment_file'])) {
+        $upload_dir = __DIR__ . '/uploads/';
+        // Извлекаем системное имя файла (после |)
+        $file_info = explode('|', $record['attachment_file']);
+        $system_name = count($file_info) > 1 ? $file_info[1] : $record['attachment_file'];
+        $file_path = $upload_dir . $system_name;
+        if (file_exists($file_path)) {
+            unlink($file_path);
+        }
+    }
+    
     if ($recordModel->delete($id, $_SESSION['user_id'], isAdmin())) {
         header("Location: records.php?deleted=1");
         exit();

@@ -15,7 +15,7 @@
             <ul class="nav-menu">
                 <?php if (isLoggedIn()): ?>
                     <li><a href="/index.php">Главная</a></li>
-                    <li><a href="/records.php">Мои записи</a></li>
+                    <li><a href="/records.php"><?php echo isAdmin() ? 'Все записи' : 'Мои записи'; ?></a></li>
                     <li><a href="/add_record.php">Добавить запись</a></li>
                     <?php if (isAdmin()): ?>
                         <li><a href="/admin/dashboard.php">Панель администратора</a></li>

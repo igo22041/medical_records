@@ -102,25 +102,32 @@ class MedicalRecord {
             $query = "SELECT r.*, u.username as creator_name 
                       FROM " . $this->table . " r 
                       LEFT JOIN users u ON r.created_by = u.id 
-                      WHERE patient_name LIKE :search 
-                      OR diagnosis LIKE :search 
-                      OR doctor_name LIKE :search 
-                      OR treatment LIKE :search
+                      WHERE patient_name LIKE :search1 
+                      OR diagnosis LIKE :search2 
+                      OR doctor_name LIKE :search3 
+                      OR treatment LIKE :search4
                       ORDER BY r.record_date DESC";
             $stmt = $this->conn->prepare($query);
+            $stmt->bindValue(":search1", $search, PDO::PARAM_STR);
+            $stmt->bindValue(":search2", $search, PDO::PARAM_STR);
+            $stmt->bindValue(":search3", $search, PDO::PARAM_STR);
+            $stmt->bindValue(":search4", $search, PDO::PARAM_STR);
         } else {
             $query = "SELECT * FROM " . $this->table . " 
                       WHERE created_by = :user_id 
-                      AND (patient_name LIKE :search 
-                      OR diagnosis LIKE :search 
-                      OR doctor_name LIKE :search 
-                      OR treatment LIKE :search)
+                      AND (patient_name LIKE :search1 
+                      OR diagnosis LIKE :search2 
+                      OR doctor_name LIKE :search3 
+                      OR treatment LIKE :search4)
                       ORDER BY record_date DESC";
             $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(":user_id", $user_id);
+            $stmt->bindValue(":user_id", $user_id, PDO::PARAM_INT);
+            $stmt->bindValue(":search1", $search, PDO::PARAM_STR);
+            $stmt->bindValue(":search2", $search, PDO::PARAM_STR);
+            $stmt->bindValue(":search3", $search, PDO::PARAM_STR);
+            $stmt->bindValue(":search4", $search, PDO::PARAM_STR);
         }
         
-        $stmt->bindParam(":search", $search);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

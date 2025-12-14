@@ -11,3 +11,4 @@ CREATE INDEX idx_status ON medical_records(status);
 
 
 
+

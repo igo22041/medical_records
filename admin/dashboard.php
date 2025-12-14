@@ -51,11 +51,14 @@ require_once '../includes/header.php';
 <div class="container">
     <div class="page-header">
         <h1>Панель администратора</h1>
-        <div class="admin-stats">
-            <div class="stat-badge">
-                <span class="stat-number"><?php echo $totalRecords; ?></span>
-                <span class="stat-label">Всего записей</span>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="admin-stats">
+                <div class="stat-badge">
+                    <span class="stat-number"><?php echo $totalRecords; ?></span>
+                    <span class="stat-label">Всего записей</span>
+                </div>
             </div>
+            <a href="users.php" class="btn btn-admin">Управление пользователями</a>
         </div>
     </div>
     

@@ -24,6 +24,7 @@
                     <li><a href="/add_record.php">Добавить запись</a></li>
                     <?php if (isAdmin()): ?>
                         <li><a href="/admin/dashboard.php">Панель администратора</a></li>
+                        <li><a href="/admin/users.php">Управление пользователями</a></li>
                     <?php endif; ?>
                     <li><a href="/logout.php">Выход (<?php echo htmlspecialchars($_SESSION['username']); ?>)</a></li>
                 <?php else: ?>

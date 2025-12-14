@@ -24,23 +24,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$conn) {
                 $error = 'Не удалось подключиться к базе данных';
             } else {
-                // Вход только по email
-                if (!filter_var($username, FILTER_VALIDATE_EMAIL)) {
-                    $error = 'Пожалуйста, введите корректный email адрес';
-                } else {
-                    // Выполняем запрос по email
+                // Вход по username или email
+                // Определяем, что введено: email или username
+                $isEmail = filter_var($username, FILTER_VALIDATE_EMAIL);
+                
+                if ($isEmail) {
+                    // Поиск по email
                     $sql = "SELECT id, username, email, password, role 
                             FROM users 
-                            WHERE email = :email 
+                            WHERE email = :login 
                             LIMIT 1";
+                } else {
+                    // Поиск по username
+                    $sql = "SELECT id, username, email, password, role 
+                            FROM users 
+                            WHERE username = :login 
+                            LIMIT 1";
+                }
 
-                    error_log("SQL query: " . $sql);
-                    error_log("Login email: $username");
+                error_log("SQL query: " . $sql);
+                error_log("Login: $username (type: " . ($isEmail ? 'email' : 'username') . ")");
 
-                    $stmt = $conn->prepare($sql);
+                $stmt = $conn->prepare($sql);
 
-                    // Связываем параметр
-                    $stmt->bindParam(':email', $username, PDO::PARAM_STR);
+                // Связываем параметр
+                $stmt->bindParam(':login', $username, PDO::PARAM_STR);
 
                     $stmt->execute();
 
@@ -65,10 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             error_log("Password verification failed for user: $username");
                         }
                     } else {
-                        $error = 'Пользователь с таким email не найден';
-                        error_log("No user found with email = $username");
+                        $error = 'Пользователь не найден';
+                        error_log("No user found with login = $username");
                     }
-                }
             }
 
         } catch (PDOException $e) {
@@ -102,10 +109,10 @@ require_once 'includes/header.php';
             
             <form method="POST" action="">
                 <div class="form-group">
-                    <label for="username">Email</label>
-                    <input type="email" id="username" name="username" required autofocus
+                    <label for="username">Имя пользователя или Email</label>
+                    <input type="text" id="username" name="username" required autofocus
                            value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>"
-                           placeholder="Введите ваш email">
+                           placeholder="Введите имя пользователя или email">
                 </div>
                 
                 <div class="form-group">

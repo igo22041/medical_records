@@ -15,9 +15,7 @@ if (file_exists(__DIR__ . '/../.env') && class_exists('Dotenv\Dotenv')) {
     }
 }
 
-/**
- * Получить переменную окружения с значением по умолчанию
- */
+
 function env($key, $default = null) {
     $value = getenv($key);
     if ($value === false) {
@@ -27,9 +25,9 @@ function env($key, $default = null) {
 }
 
 
-// Railway использует префикс MYSQL_, но мы также поддерживаем DB_ для гибкости
+
 define('DB_HOST', env('MYSQL_HOST', env('DB_HOST', 'switchback.proxy.rlwy.net')));
-define('DB_NAME', env('MYSQL_DATABASE', env('DB_NAME', 'medical_records')));
+define('DB_NAME', env('MYSQL_DATABASE', env('DB_NAME', 'railway')));
 define('DB_USER', env('MYSQL_USER', env('DB_USER', 'root')));
 define('DB_PASS', env('MYSQL_PASSWORD', env('DB_PASSWORD', 'sBxNvZMqCrmjjXmbuatiSsPBPwDEDuzW')));
 define('DB_PORT', env('MYSQL_PORT', env('DB_PORT', '21778')));

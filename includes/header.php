@@ -12,7 +12,12 @@
             <div class="nav-brand">
                 <a href="/index.php">Медицинские записи</a>
             </div>
-            <ul class="nav-menu">
+            <button class="burger-menu-toggle" id="burgerToggle" aria-label="Меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
                 <?php if (isLoggedIn()): ?>
                     <li><a href="/index.php">Главная</a></li>
                     <li><a href="/records.php"><?php echo isAdmin() ? 'Все записи' : 'Мои записи'; ?></a></li>
@@ -28,5 +33,34 @@
             </ul>
         </div>
     </nav>
+    <script>
+        (function() {
+            const burgerToggle = document.getElementById('burgerToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            if (burgerToggle && navMenu) {
+                burgerToggle.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                    burgerToggle.classList.toggle('active');
+                });
+                
+                // Закрываем меню при клике на ссылку
+                navMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', function() {
+                        navMenu.classList.remove('active');
+                        burgerToggle.classList.remove('active');
+                    });
+                });
+                
+                // Закрываем меню при клике вне его
+                document.addEventListener('click', function(e) {
+                    if (!navMenu.contains(e.target) && !burgerToggle.contains(e.target)) {
+                        navMenu.classList.remove('active');
+                        burgerToggle.classList.remove('active');
+                    }
+                });
+            }
+        })();
+    </script>
     <main class="main-content">
 

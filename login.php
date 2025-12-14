@@ -24,38 +24,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$conn) {
                 $error = 'Не удалось подключиться к базе данных';
             } else {
-                // Сначала проверим структуру таблицы users
-                $stmt = $conn->query("SHOW COLUMNS FROM users");
-                $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-                error_log("Columns in users table: " . implode(', ', $columns));
-
-                // Определяем поле для логина
-                if (in_array('username', $columns)) {
-                    $loginField = 'username';
-                } elseif (in_array('email', $columns)) {
-                    $loginField = 'email';
-                } elseif (in_array('login', $columns)) {
-                    $loginField = 'login';
+                // Вход только по email
+                if (!filter_var($username, FILTER_VALIDATE_EMAIL)) {
+                    $error = 'Пожалуйста, введите корректный email адрес';
                 } else {
-                    $error = 'Не найдено поле для логина в таблице users';
-                    error_log("No login field found in users table");
-                }
-
-                if (!$error) {
-                    // Теперь выполняем запрос с правильным количеством параметров
+                    // Выполняем запрос по email
                     $sql = "SELECT id, username, email, password, role 
                             FROM users 
-                            WHERE $loginField = :username 
+                            WHERE email = :email 
                             LIMIT 1";
 
                     error_log("SQL query: " . $sql);
-                    error_log("Login field: $loginField, Username: $username");
+                    error_log("Login email: $username");
 
                     $stmt = $conn->prepare($sql);
 
                     // Связываем параметр
-                    $stmt->bindParam(':username', $username, PDO::PARAM_STR);
+                    $stmt->bindParam(':email', $username, PDO::PARAM_STR);
 
                     $stmt->execute();
 
@@ -80,8 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             error_log("Password verification failed for user: $username");
                         }
                     } else {
-                        $error = 'Пользователь не найден';
-                        error_log("No user found with $loginField = $username");
+                        $error = 'Пользователь с таким email не найден';
+                        error_log("No user found with email = $username");
                     }
                 }
             }
@@ -117,9 +102,10 @@ require_once 'includes/header.php';
             
             <form method="POST" action="">
                 <div class="form-group">
-                    <label for="username">Имя пользователя или Email</label>
-                    <input type="text" id="username" name="username" required autofocus
-                           value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                    <label for="username">Email</label>
+                    <input type="email" id="username" name="username" required autofocus
+                           value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>"
+                           placeholder="Введите ваш email">
                 </div>
                 
                 <div class="form-group">

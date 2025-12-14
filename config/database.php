@@ -1,7 +1,7 @@
 <?php
 class Database {
     private $host = "switchback.proxy.rlwy.net";
-    private $db_name = "medical_records";
+    private $db_name = "railway";
     private $username = "root";
     private $password = "sBxNvZMqCrmjjXmbuatiSsPBPwDEDuzW";
     public $conn;

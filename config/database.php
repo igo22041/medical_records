@@ -1,62 +1,108 @@
 <?php
-// Загружаем autoload если еще не загружен
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
-}
-
-// Загружаем переменные окружения
-require_once __DIR__ . '/env.php';
-
+// config/database.php
 class Database {
-    private $host;
-    private $db_name;
-    private $username;
-    private $password;
-    private $port;
-    public $conn;
-
-    public function __construct() {
-        // Проверяем, что константы определены
-        if (!defined('DB_HOST') || !defined('DB_NAME') || !defined('DB_USER') || !defined('DB_PASS') || !defined('DB_PORT')) {
-            throw new RuntimeException("Константы базы данных не определены. Убедитесь, что config/env.php загружен.");
-        }
-        
-        // Используем переменные окружения (Railway или .env файл)
-        $this->host = DB_HOST;
-        $this->db_name = DB_NAME;
-        $this->username = DB_USER;
-        $this->password = DB_PASS;
-        $this->port = DB_PORT;
-    }
+    private $conn = null;
 
     public function getConnection() {
-        // Если подключение уже установлено, возвращаем его
-        if ($this->conn !== null) {
-            return $this->conn;
+        if ($this->conn === null) {
+            $this->connect();
         }
-
-        try {
-            $dsn = "mysql://root:sBxNvZMqCrmjjXmbuatiSsPBPwDEDuzW@mysql.railway.internal:3306/railway";
-            $this->conn = new PDO(
-                $dsn,
-                $this->username,
-                $this->password,
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                ]
-            );
-        } catch(PDOException $exception) {
-            // Логируем ошибку
-            error_log("Database connection error: " . $exception->getMessage());
-            error_log("Connection details: host=" . $this->host . ", port=" . $this->port . ", dbname=" . $this->db_name);
-            
-            // Выбрасываем исключение вместо возврата null
-            throw new PDOException("Не удалось подключиться к базе данных. Пожалуйста, обратитесь к администратору.", 0, $exception);
-        }
-
         return $this->conn;
     }
-}
 
+    private function connect() {
+        try {
+
+            $databaseUrl = getenv('DATABASE_URL');
+
+            if ($databaseUrl) {
+
+                $url = parse_url($databaseUrl);
+
+
+                $host = "mysql.railway.internal";
+                $port = '3306';
+                $dbname = "railway";
+                $username = "root";
+                $password = "sBxNvZMqCrmjjXmbuatiSsPBPwDEDuzW";
+
+
+                $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+
+                $this->conn = new PDO($dsn, $username, $password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+
+                    PDO::ATTR_PERSISTENT => false
+                ]);
+
+                error_log("Connected to Railway MySQL via TCP: $host:$port");
+
+            } else {
+                $host = getenv('DB_HOST') ?: 'localhost';
+                $port = getenv('DB_PORT') ?: '3306';
+                $dbname = getenv('DB_NAME') ?: 'railway';
+                $username = getenv('DB_USER') ?: 'root';
+                $password = getenv('DB_PASSWORD') ?: '';
+
+
+                $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+
+                $this->conn = new PDO($dsn, $username, $password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                ]);
+
+                error_log("Connected to MySQL: $host:$port");
+            }
+
+            // Тестовый запрос для проверки
+            $this->conn->query("SELECT 1");
+
+        } catch (PDOException $e) {
+            error_log("Database connection failed: " . $e->getMessage());
+            error_log("DSN attempted: " . ($dsn ?? 'unknown'));
+
+            // Дополнительная отладка
+            $this->logEnvironment();
+
+            // Показываем понятную ошибку
+            if (getenv('APP_DEBUG') === 'true') {
+                die("Database Connection Error: " . $e->getMessage() .
+                    "<br>Check if MySQL service is running on Railway.");
+            } else {
+                die("Database connection failed. Please try again later.");
+            }
+        }
+    }
+
+    private function logEnvironment() {
+        $envVars = [
+            'DATABASE_URL',
+            'DB_HOST',
+            'DB_PORT',
+            'DB_NAME',
+            'DB_USER',
+            'RAILWAY_ENVIRONMENT',
+            'RAILWAY_PROJECT_NAME'
+        ];
+
+        foreach ($envVars as $var) {
+            $value = getenv($var);
+            error_log("ENV $var: " . ($value ? substr($value, 0, 50) . "..." : 'not set'));
+        }
+    }
+
+    public function testConnection() {
+        try {
+            $conn = $this->getConnection();
+            $stmt = $conn->query("SELECT NOW() as time, VERSION() as version");
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+}
+?>

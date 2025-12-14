@@ -44,7 +44,4 @@ function getStatusIcon($status) {
     $statuses = getStatuses();
     return isset($statuses[$status]) ? $statuses[$status]['icon'] : '●';
 }
-?>
-
-
 

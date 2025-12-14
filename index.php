@@ -2,13 +2,14 @@
 require_once 'config/session.php';
 require_once 'config/database.php';
 
-$pageTitle = "Главная страница";
-require_once 'includes/header.php';
-
+// Проверка авторизации ДО вывода HTML
 if (!isLoggedIn()) {
     header("Location: login.php");
     exit();
 }
+
+$pageTitle = "Главная страница";
+require_once 'includes/header.php';
 
 require_once 'models/MedicalRecord.php';
 $recordModel = new MedicalRecord();

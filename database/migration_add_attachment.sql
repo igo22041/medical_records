@@ -7,3 +7,4 @@ ALTER TABLE medical_records
 ADD COLUMN attachment_file VARCHAR(255) NULL AFTER treatment,
 ADD INDEX idx_attachment_file (attachment_file);
 
+

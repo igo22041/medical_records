@@ -9,5 +9,4 @@ require_once BASE_PATH . '/config/env.php';
 
 // Автозагрузка конфигурации
 require_once BASE_PATH . '/config/session.php';
-?>
 

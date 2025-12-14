@@ -37,4 +37,4 @@ define('DB_PORT', env('MYSQL_PORT', env('DB_PORT', '3306')));
 // Другие переменные окружения
 define('APP_ENV', env('APP_ENV', 'production'));
 define('APP_DEBUG', env('APP_DEBUG', 'false') === 'true');
-?>
+

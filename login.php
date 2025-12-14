@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$error) {
                     // Теперь выполняем запрос с правильным количеством параметров
                     // Вариант 1: с именованными параметрами
-                    $sql = "SELECT id, username, email, password_hash, role, full_name 
+                    $sql = "SELECT id, username, email, password, role, full_name 
                             FROM users 
                             WHERE $loginField = :username 
                             LIMIT 1";
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         error_log("User found: " . json_encode($user));
 
                         // Проверяем пароль
-                        if (password_verify($password, $user['password_hash'])) {
+                        if (password_verify($password, $user['password'])) {
                             // Успешный вход
                             $_SESSION['user_id'] = $user['id'];
                             $_SESSION['username'] = $user['username'] ?? $user['email'];

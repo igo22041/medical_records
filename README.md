@@ -52,20 +52,27 @@
    mysql -u root -p medical_records < database/migration_add_status.sql
    ```
 
-4. Настройте подключение к базе данных в файле `config/database.php`:
-   ```php
-   private $host = "localhost";
-   private $db_name = "medical_records";
-   private $username = "root";
-   private $password = "";
+4. Настройте подключение к базе данных:
+   
+   **Для локальной разработки:**
+   - Создайте файл `.env` на основе `.env.example`
+   - Или отредактируйте `config/database.php` напрямую
+   
+   **Для Railway (production):**
+   - Переменные окружения настраиваются автоматически
+   - См. подробности в `RAILWAY.md`
+
+5. Установите зависимости:
+   ```bash
+   composer install
    ```
 
-5. Запустите веб-сервер:
+6. Запустите веб-сервер:
    ```bash
    php -S localhost:8000
    ```
 
-6. Откройте браузер и перейдите по адресу `http://localhost:8000`
+7. Откройте браузер и перейдите по адресу `http://localhost:8000`
 
 ## Тестовые учетные данные
 
@@ -77,6 +84,16 @@
 - Имя пользователя: `user`
 - Пароль: `user123`
 
+## Деплой на Railway
+
+Проект готов к деплою на Railway. Подробные инструкции см. в файле [RAILWAY.md](RAILWAY.md).
+
+**Быстрый старт:**
+1. Подключите репозиторий к Railway
+2. Добавьте MySQL базу данных
+3. Выполните SQL скрипты из `database/init.sql`
+4. Railway автоматически задеплоит приложение
+
 ## Структура проекта
 
 ```
@@ -87,7 +104,8 @@ kursovoi/
 │   └── css/
 │       └── style.css          # Стили приложения
 ├── config/
-│   ├── database.php           # Подключение к БД
+│   ├── database.php           # Подключение к БД (использует переменные окружения)
+│   ├── env.php                # Загрузка переменных окружения
 │   ├── session.php            # Управление сессиями
 │   └── statuses.php           # Конфигурация статусов записей
 ├── database/
@@ -99,6 +117,10 @@ kursovoi/
 ├── models/
 │   ├── User.php               # Модель пользователя
 │   └── MedicalRecord.php      # Модель медицинской записи
+├── .env.example               # Пример переменных окружения
+├── railway.json               # Конфигурация Railway
+├── nixpacks.toml              # Конфигурация сборки для Railway
+├── RAILWAY.md                 # Документация по деплою на Railway
 ├── add_record.php             # Добавление записи
 ├── delete_record.php          # Удаление записи
 ├── edit_record.php            # Редактирование записи

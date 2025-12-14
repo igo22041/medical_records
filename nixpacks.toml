@@ -1,0 +1,36 @@
+[phases.setup]
+nixPkgs = [
+    "php82",
+    "php82Packages.composer",
+    "mariadb-client",
+    "php82Extensions.pdo_mysql",
+    "php82Extensions.mysqli",
+    "php82Extensions.mbstring",
+    "php82Extensions.curl",
+    "php82Extensions.openssl",
+    "php82Extensions.gd",
+    "php82Extensions.zip",
+    "php82Extensions.json",
+    "poppler_utils",        # Для работы с PDF
+    "ghostscript"           # Для работы с PDF
+]
+
+[phases.install]
+cmds = [
+    "composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist",
+    "composer dump-autoload --optimize",
+    # Создаем необходимые директории
+    "mkdir -p uploads && chmod 755 uploads",
+    "mkdir -p tmp && chmod 755 tmp"
+]
+
+[phases.build]
+cmds = [
+    "echo '📊 Building Medical Records System...'",
+    "echo 'PHP Version:' && php -v",
+    "echo '📦 Installed Extensions:'",
+    "php -m | grep -E '(pdo_mysql|mysqli|gd|zip|json|mbstring|curl|openssl)'"
+]
+
+[start]
+cmd = "php -S 0.0.0.0:${PORT} -t ."

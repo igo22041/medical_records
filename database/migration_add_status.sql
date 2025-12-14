@@ -9,3 +9,4 @@ AFTER record_date;
 CREATE INDEX idx_status ON medical_records(status);
 
 
+

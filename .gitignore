@@ -13,5 +13,14 @@ uploads/
 .DS_Store
 Thumbs.db
 
+# Переменные окружения
+.env
+.env.local
+.env.*.local
+
 # Конфигурация (если нужно скрыть)
 # config/database.php
+
+# Composer
+/vendor/
+

@@ -25,11 +25,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Некорректный email адрес';
     } else {
-        $user = new User();
-        if ($user->register($username, $email, $password)) {
-            $success = 'Регистрация успешна! Теперь вы можете войти в систему.';
-        } else {
-            $error = 'Ошибка регистрации. Возможно, имя пользователя или email уже заняты.';
+        try {
+            $user = new User();
+            if ($user->register($username, $email, $password)) {
+                $success = 'Регистрация успешна! Теперь вы можете войти в систему.';
+            } else {
+                $error = 'Ошибка регистрации. Возможно, имя пользователя или email уже заняты.';
+            }
+        } catch(PDOException $e) {
+            error_log("Registration error: " . $e->getMessage());
+            $error = 'Ошибка подключения к базе данных. Пожалуйста, попробуйте позже.';
+        } catch(Exception $e) {
+            error_log("Registration error: " . $e->getMessage());
+            $error = 'Произошла ошибка. Пожалуйста, попробуйте позже.';
         }
     }
 }

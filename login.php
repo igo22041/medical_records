@@ -17,12 +17,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($username) || empty($password)) {
         $error = 'Пожалуйста, заполните все поля';
     } else {
-        $user = new User();
-        if ($user->login($username, $password)) {
-            header("Location: index.php");
-            exit();
-        } else {
-            $error = 'Неверное имя пользователя или пароль';
+        try {
+            $user = new User();
+            if ($user->login($username, $password)) {
+                header("Location: index.php");
+                exit();
+            } else {
+                $error = 'Неверное имя пользователя или пароль';
+            }
+        } catch(PDOException $e) {
+            error_log("Login error: " . $e->getMessage());
+            $error = 'Ошибка подключения к базе данных. Пожалуйста, попробуйте позже.';
+        } catch(Exception $e) {
+            error_log("Login error: " . $e->getMessage());
+            $error = 'Произошла ошибка. Пожалуйста, попробуйте позже.';
         }
     }
 }
@@ -61,7 +69,7 @@ require_once 'includes/header.php';
             <p class="auth-link">
                 Нет аккаунта? <a href="register.php">Зарегистрироваться</a>
             </p>
-
+            
         </div>
     </div>
 </div>

@@ -6,8 +6,17 @@ class MedicalRecord {
     private $table = "medical_records";
 
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        try {
+            $database = new Database();
+            $this->conn = $database->getConnection();
+            
+            if ($this->conn === null) {
+                throw new PDOException("Не удалось получить подключение к базе данных");
+            }
+        } catch(PDOException $e) {
+            error_log("MedicalRecord model connection error: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function create($patient_name, $patient_age, $diagnosis, $treatment, $doctor_name, $record_date, $status, $created_by, $attachment_file = null) {

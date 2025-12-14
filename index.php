@@ -11,9 +11,19 @@ if (!isLoggedIn()) {
 $pageTitle = "Главная страница";
 require_once 'includes/header.php';
 
-require_once 'models/MedicalRecord.php';
-$recordModel = new MedicalRecord();
-$totalRecords = $recordModel->getTotalCount($_SESSION['user_id'], isAdmin());
+try {
+    require_once 'models/MedicalRecord.php';
+    $recordModel = new MedicalRecord();
+    $totalRecords = $recordModel->getTotalCount($_SESSION['user_id'], isAdmin());
+} catch(PDOException $e) {
+    error_log("Database error in index.php: " . $e->getMessage());
+    $totalRecords = 0;
+    echo '<div class="alert alert-error">Ошибка подключения к базе данных. Пожалуйста, попробуйте позже.</div>';
+} catch(Exception $e) {
+    error_log("Error in index.php: " . $e->getMessage());
+    $totalRecords = 0;
+    echo '<div class="alert alert-error">Произошла ошибка. Пожалуйста, попробуйте позже.</div>';
+}
 ?>
 
 <div class="container">

@@ -6,8 +6,17 @@ class User {
     private $table = "users";
 
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        try {
+            $database = new Database();
+            $this->conn = $database->getConnection();
+            
+            if ($this->conn === null) {
+                throw new PDOException("Не удалось получить подключение к базе данных");
+            }
+        } catch(PDOException $e) {
+            error_log("User model connection error: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function register($username, $email, $password) {

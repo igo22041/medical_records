@@ -36,7 +36,7 @@ class Database {
         }
 
         try {
-            $dsn = "mysql:host=" . $this->host . ";port=" . $this->port . ";dbname=" . $this->db_name . ";charset=utf8";
+            $dsn = "mysql://root:sBxNvZMqCrmjjXmbuatiSsPBPwDEDuzW@mysql.railway.internal:3306/railway";
             $this->conn = new PDO(
                 $dsn,
                 $this->username,

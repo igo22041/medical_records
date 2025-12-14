@@ -343,5 +343,4 @@ class MedicalRecord {
         return $result['total'];
     }
 }
-?>
 

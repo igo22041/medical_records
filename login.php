@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$error) {
                     // Теперь выполняем запрос с правильным количеством параметров
                     // Вариант 1: с именованными параметрами
-                    $sql = "SELECT id, username, email, password, role, full_name 
+                    $sql = "SELECT id, username, email, password, role 
                             FROM users 
                             WHERE $loginField = :username 
                             LIMIT 1";
@@ -74,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $_SESSION['username'] = $user['username'] ?? $user['email'];
                             $_SESSION['email'] = $user['email'] ?? '';
                             $_SESSION['role'] = $user['role'] ?? 'user';
-                            $_SESSION['full_name'] = $user['full_name'] ?? '';
 
                             // Редирект
                             ob_end_clean(); // Очищаем буфер перед редиректом

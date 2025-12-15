@@ -84,8 +84,9 @@ class User {
             return false;
         }
         
-        // Удаляем пользователя (записи остаются, но created_by может стать NULL или остаться как есть)
-        // В зависимости от структуры БД, можно установить created_by в NULL или оставить как есть
+        // Удаляем пользователя
+        // Записи сохраняются благодаря ON DELETE SET NULL в базе данных
+        // created_by будет установлен в NULL для всех записей удаленного пользователя
         $query = "DELETE FROM " . $this->table . " WHERE id = :id AND id != :current_user_id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id, PDO::PARAM_INT);
@@ -107,4 +108,3 @@ class User {
         return $stmt->execute();
     }
 }
-
